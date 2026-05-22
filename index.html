@@ -3,156 +3,511 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Country Info App</title>
+  <title>Country Explorer</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
 
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: #0f0f0f;
+      background: #080608;
       color: #ffffff;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* BACKGROUND */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background:
+        radial-gradient(ellipse at 20% 20%, rgba(139,90,255,0.12) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 80%, rgba(212,175,55,0.08) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-image:
+        linear-gradient(rgba(212,175,55,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(212,175,55,0.03) 1px, transparent 1px);
+      background-size: 50px 50px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      background: rgba(8,6,8,0.85);
+      backdrop-filter: blur(20px);
+      padding: 18px 48px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(212,175,55,0.12);
+      z-index: 100;
+    }
+
+    .nav-logo {
+      font-weight: 800;
+      font-size: 18px;
+      background: linear-gradient(135deg, #D4AF37, #F5D77E);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav-tag {
+      background: rgba(139,90,255,0.1);
+      border: 1px solid rgba(139,90,255,0.3);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 12px;
+      color: #a78bfa;
+    }
+
+    /* HERO */
+    .hero {
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      justify-content: center;
       align-items: center;
-      padding: 40px 20px;
+      text-align: center;
+      padding: 120px 20px 60px;
+      position: relative;
+      z-index: 1;
     }
 
-    h1 {
-      font-size: 28px;
-      margin-bottom: 8px;
-      color: #ffffff;
+    .hero-badge {
+      background: rgba(212,175,55,0.08);
+      border: 1px solid rgba(212,175,55,0.2);
+      border-radius: 20px;
+      padding: 6px 16px;
+      font-size: 12px;
+      color: #D4AF37;
+      margin-bottom: 24px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
     }
 
-    p.subtitle {
-      color: #888;
-      margin-bottom: 32px;
-      font-size: 14px;
+    .hero h1 {
+      font-size: 60px;
+      font-weight: 900;
+      line-height: 1.05;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #fff 0%, #F5D77E 50%, #a78bfa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      font-size: 17px;
+      color: #666;
+      max-width: 480px;
+      margin-bottom: 48px;
+      line-height: 1.7;
+    }
+
+    /* SEARCH BOX */
+    .search-wrapper {
+      width: 100%;
+      max-width: 560px;
+      margin-bottom: 20px;
     }
 
     .search-box {
       display: flex;
-      gap: 10px;
-      margin-bottom: 40px;
-      width: 100%;
-      max-width: 500px;
+      gap: 0;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(212,175,55,0.2);
+      border-radius: 14px;
+      overflow: hidden;
+      transition: border-color 0.3s;
+    }
+
+    .search-box:focus-within {
+      border-color: rgba(212,175,55,0.5);
+    }
+
+    .search-icon {
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      color: #555;
+      font-size: 18px;
     }
 
     input {
       flex: 1;
-      padding: 12px 16px;
-      border-radius: 8px;
-      border: 1px solid #333;
-      background: #1a1a1a;
+      padding: 18px 8px;
+      background: transparent;
+      border: none;
       color: #fff;
-      font-size: 15px;
+      font-size: 16px;
       outline: none;
     }
 
-    input:focus { border-color: #555; }
+    input::placeholder { color: #444; }
 
     button {
-      padding: 12px 24px;
-      background: #ffffff;
+      padding: 18px 28px;
+      background: linear-gradient(135deg, #D4AF37, #F5D77E);
       color: #000;
       border: none;
-      border-radius: 8px;
       font-size: 15px;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
+      transition: opacity 0.2s;
+      white-space: nowrap;
     }
 
-    button:hover { background: #ddd; }
+    button:hover { opacity: 0.9; }
 
-    .card {
-      background: #1a1a1a;
-      border: 1px solid #333;
-      border-radius: 16px;
-      padding: 32px;
-      max-width: 500px;
-      width: 100%;
+    .hint {
+      font-size: 12px;
+      color: #333;
+      margin-top: 12px;
+    }
+
+    .hint span { color: #555; cursor: pointer; }
+    .hint span:hover { color: #D4AF37; }
+
+    /* STATUS MESSAGES */
+    .loading {
       display: none;
+      color: #555;
+      font-size: 14px;
+      margin-top: 24px;
+      letter-spacing: 1px;
+    }
+
+    .loading::after {
+      content: '';
+      animation: dots 1.5s infinite;
+    }
+
+    @keyframes dots {
+      0%   { content: '.'; }
+      33%  { content: '..'; }
+      66%  { content: '...'; }
+    }
+
+    .error {
+      display: none;
+      color: #ff6b6b;
+      font-size: 14px;
+      margin-top: 16px;
+      background: rgba(255,107,107,0.08);
+      border: 1px solid rgba(255,107,107,0.2);
+      padding: 10px 20px;
+      border-radius: 8px;
+    }
+
+    /* RESULT CARD */
+    .card {
+      display: none;
+      width: 100%;
+      max-width: 600px;
+      margin-top: 40px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(212,175,55,0.15);
+      border-radius: 20px;
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
+      animation: fadeUp 0.4s ease;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
 
     .card.visible { display: block; }
 
-    .flag {
+    /* Card top bar */
+    .card-bar {
+      height: 3px;
+      background: linear-gradient(90deg, #D4AF37, #a78bfa, #D4AF37);
+      background-size: 200%;
+      animation: shimmer 3s infinite linear;
+    }
+
+    @keyframes shimmer {
+      from { background-position: 0%; }
+      to   { background-position: 200%; }
+    }
+
+    .card-header {
+      padding: 32px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .flag-box {
       font-size: 72px;
+      line-height: 1;
+    }
+
+    .country-info h2 {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 6px;
+      background: linear-gradient(135deg, #fff, #D4AF37);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .country-region {
+      font-size: 13px;
+      color: #a78bfa;
+      background: rgba(139,90,255,0.1);
+      border: 1px solid rgba(139,90,255,0.2);
+      padding: 3px 12px;
+      border-radius: 12px;
+      display: inline-block;
+    }
+
+    .card-body {
+      padding: 24px 32px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+
+    .info-item {
+      padding: 16px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .info-item:nth-child(odd) {
+      padding-right: 24px;
+      border-right: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .info-item:nth-child(even) {
+      padding-left: 24px;
+    }
+
+    .info-label {
+      font-size: 11px;
+      color: #444;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 6px;
+    }
+
+    .info-value {
+      font-size: 16px;
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .info-value.gold {
+      background: linear-gradient(135deg, #D4AF37, #F5D77E);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .card-footer {
+      padding: 20px 32px;
+      background: rgba(255,255,255,0.01);
+      border-top: 1px solid rgba(255,255,255,0.04);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-footer span {
+      font-size: 12px;
+      color: #333;
+    }
+
+    .card-footer .api-badge {
+      font-size: 11px;
+      color: #555;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid #222;
+      padding: 4px 10px;
+      border-radius: 8px;
+    }
+
+    /* POPULAR COUNTRIES */
+    .popular {
+      position: relative;
+      z-index: 1;
+      padding: 0 20px 80px;
       text-align: center;
+    }
+
+    .popular h3 {
+      font-size: 12px;
+      color: #333;
+      text-transform: uppercase;
+      letter-spacing: 2px;
       margin-bottom: 16px;
     }
 
-    .country-name {
-      font-size: 26px;
-      font-weight: 700;
-      text-align: center;
-      margin-bottom: 24px;
-    }
-
-    .info-row {
+    .country-chips {
       display: flex;
-      justify-content: space-between;
-      padding: 12px 0;
-      border-bottom: 1px solid #2a2a2a;
-      font-size: 14px;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
     }
 
-    .info-row:last-child { border-bottom: none; }
-    .label { color: #888; }
-    .value { color: #fff; font-weight: 500; }
-
-    .error {
-      color: #ff6b6b;
-      font-size: 14px;
-      margin-top: 16px;
-      display: none;
+    .chip {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid #1a1a1a;
+      border-radius: 20px;
+      padding: 8px 18px;
+      font-size: 13px;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.2s;
     }
 
-    .loading {
-      color: #888;
-      font-size: 14px;
-      margin-top: 16px;
-      display: none;
+    .chip:hover {
+      border-color: rgba(212,175,55,0.3);
+      color: #D4AF37;
+      background: rgba(212,175,55,0.05);
+    }
+
+    /* FOOTER */
+    footer {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 24px;
+      color: #222;
+      font-size: 12px;
+      border-top: 1px solid rgba(255,255,255,0.03);
+    }
+
+    footer span { color: #D4AF37; }
+
+    @media (max-width: 600px) {
+      .hero h1 { font-size: 36px; }
+      nav { padding: 16px 20px; }
+      .card-body { grid-template-columns: 1fr; }
+      .info-item:nth-child(odd) {
+        border-right: none;
+        padding-right: 0;
+      }
+      .info-item:nth-child(even) { padding-left: 0; }
     }
   </style>
 </head>
 <body>
 
-  <h1>🌍 Country Info</h1>
-  <p class="subtitle">Type a country name to get live data</p>
+  <nav>
+    <div class="nav-logo">🌍 Country Explorer</div>
+    <div class="nav-tag">Live API Data</div>
+  </nav>
 
-  <div class="search-box">
-    <input type="text" id="countryInput" placeholder="e.g. India, Japan, Brazil" />
-    <button onclick="getCountry()">Search</button>
+  <div class="hero">
+    <div class="hero-badge">REST Countries API</div>
+    <h1>Explore Every<br/>Country on Earth</h1>
+    <p>Search any country and get live data —
+    flag, population, currency, language
+    and more. Powered by a real API.</p>
+
+    <div class="search-wrapper">
+      <div class="search-box">
+        <div class="search-icon">🔍</div>
+        <input
+          type="text"
+          id="countryInput"
+          placeholder="Type a country name..."
+          autocomplete="off"
+        />
+        <button onclick="getCountry()">Search</button>
+      </div>
+      <p class="hint">
+        Try:
+        <span onclick="quickSearch('India')">India</span> ·
+        <span onclick="quickSearch('Japan')">Japan</span> ·
+        <span onclick="quickSearch('Brazil')">Brazil</span> ·
+        <span onclick="quickSearch('Germany')">Germany</span>
+      </p>
+    </div>
+
+    <p class="loading" id="loading">Fetching data</p>
+    <p class="error" id="error">Country not found</p>
+
+    <div class="card" id="card">
+      <div class="card-bar"></div>
+      <div class="card-header">
+        <div class="flag-box" id="flag"></div>
+        <div class="country-info">
+          <h2 id="name"></h2>
+          <span class="country-region" id="region"></span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="info-item">
+          <div class="info-label">Capital</div>
+          <div class="info-value" id="capital"></div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Population</div>
+          <div class="info-value gold" id="population"></div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Currency</div>
+          <div class="info-value" id="currency"></div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Language</div>
+          <div class="info-value" id="language"></div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Area</div>
+          <div class="info-value" id="area"></div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Timezone</div>
+          <div class="info-value" id="timezone"></div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <span id="native-name"></span>
+        <span class="api-badge">restcountries.com</span>
+      </div>
+    </div>
   </div>
 
-  <p class="loading" id="loading">Fetching data...</p>
-  <p class="error" id="error">Country not found. Try again.</p>
-
-  <div class="card" id="card">
-    <div class="flag" id="flag"></div>
-    <div class="country-name" id="name"></div>
-    <div class="info-row">
-      <span class="label">Capital</span>
-      <span class="value" id="capital"></span>
-    </div>
-    <div class="info-row">
-      <span class="label">Population</span>
-      <span class="value" id="population"></span>
-    </div>
-    <div class="info-row">
-      <span class="label">Region</span>
-      <span class="value" id="region"></span>
-    </div>
-    <div class="info-row">
-      <span class="label">Currency</span>
-      <span class="value" id="currency"></span>
-    </div>
-    <div class="info-row">
-      <span class="label">Language</span>
-      <span class="value" id="language"></span>
+  <div class="popular">
+    <h3>Popular Searches</h3>
+    <div class="country-chips">
+      <div class="chip" onclick="quickSearch('United States')">🇺🇸 USA</div>
+      <div class="chip" onclick="quickSearch('China')">🇨🇳 China</div>
+      <div class="chip" onclick="quickSearch('India')">🇮🇳 India</div>
+      <div class="chip" onclick="quickSearch('United Kingdom')">🇬🇧 UK</div>
+      <div class="chip" onclick="quickSearch('Japan')">🇯🇵 Japan</div>
+      <div class="chip" onclick="quickSearch('Australia')">🇦🇺 Australia</div>
+      <div class="chip" onclick="quickSearch('Canada')">🇨🇦 Canada</div>
+      <div class="chip" onclick="quickSearch('France')">🇫🇷 France</div>
+      <div class="chip" onclick="quickSearch('Germany')">🇩🇪 Germany</div>
+      <div class="chip" onclick="quickSearch('Brazil')">🇧🇷 Brazil</div>
+      <div class="chip" onclick="quickSearch('South Africa')">🇿🇦 S.Africa</div>
+      <div class="chip" onclick="quickSearch('UAE')">🇦🇪 UAE</div>
     </div>
   </div>
+
+  <footer>
+    <p>Built by <span>Aniket Dhuri</span> —
+    90-Day Job-Ready Sprint · Mumbai</p>
+  </footer>
 
   <script src="script.js"></script>
 </body>
